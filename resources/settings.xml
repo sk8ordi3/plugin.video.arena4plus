@@ -1,0 +1,10 @@
+﻿<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<settings>
+    <category label="Bejelentkezés">
+        <setting label="E-mail" type="text" id="username" default=""/>
+        <setting label="Jelszó" type="text" id="password" option="hidden" default=""/>		
+    </category>
+    <category label="InputStream">
+        <setting id="inputstreamsettings" type="action" label="InputStream Adaptive beállítások" option="close" action="RunPlugin(plugin://plugin.video.arena4plus/?action=inputStreamSettings)"></setting>
+    </category>
+</settings>
