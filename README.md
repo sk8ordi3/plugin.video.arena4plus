@@ -3,4 +3,4 @@
 
 Kodi kiegészítő a Arena4Plus-hoz
 
-1.0.0 - Első verzió
+1.0.0 - Első verzió - Android-on nincs lejátszás
