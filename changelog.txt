@@ -1,2 +1,2 @@
 [B]1.0.0[/B]
-- Első verzió
+- Első verzió - Android-on nincs lejátszás
