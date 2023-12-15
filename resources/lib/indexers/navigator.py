@@ -30,21 +30,11 @@ sysaddon = sys.argv[0]
 syshandle = int(sys.argv[1])
 addonFanart = xbmcaddon.Addon().getAddonInfo('fanart')
 
-import platform
-import xml.etree.ElementTree as ET
-
-os_info = platform.platform()
+version = xbmcaddon.Addon().getAddonInfo('version')
 kodi_version = xbmc.getInfoLabel('System.BuildVersion')
+base_log_info = f'Arena4Plus | v{version} | Kodi: {kodi_version[:5]}'
 
-current_directory = os.path.dirname(os.path.abspath(__file__))
-parent_directory = os.path.dirname(os.path.dirname(os.path.dirname(current_directory)))
-addon_xml_path = os.path.join(parent_directory, "addon.xml")
-
-tree = ET.parse(addon_xml_path)
-root = tree.getroot()
-version = root.attrib.get("version")
-
-xbmc.log(f'Arena4Plus | v{version} | Kodi: {kodi_version[:5]}| OS: {os_info}', xbmc.LOGINFO)
+xbmc.log(f'{base_log_info}', xbmc.LOGINFO)
 
 addon = xbmcaddon.Addon('plugin.video.arena4plus')
 user_name = addon.getSetting('username')
@@ -659,8 +649,8 @@ class navigator:
             response_3 = requests.get(stream_url).text
             lic_url = re.findall(r'license[uU]rl=\"(.*?)\"', response_3)[0].strip()
             
-            xbmc.log(f'Arena4Plus | v{version} | Kodi: {kodi_version[:5]}| OS: {os_info} | getMpdLic | both_title | {both_title}', xbmc.LOGINFO)
-            xbmc.log(f'Arena4Plus | v{version} | Kodi: {kodi_version[:5]}| OS: {os_info} | getMpdLic | stream_url | {stream_url}', xbmc.LOGINFO)
+            xbmc.log(f'{base_log_info}| getMpdLic | both_title | {both_title}', xbmc.LOGINFO)
+            xbmc.log(f'{base_log_info}| getMpdLic | stream_url | {stream_url}', xbmc.LOGINFO)
 
             if re.search(r'None', str(both_title)):
                 full_title = f'{main_title}'
@@ -670,7 +660,7 @@ class navigator:
 
             lic = lic_url + '||R{SSM}|'
             
-            xbmc.log(f'Arena4Plus | v{version} | Kodi: {kodi_version[:5]}| OS: {os_info} | getMpdLic | lic | {lic}', xbmc.LOGINFO)
+            xbmc.log(f'{base_log_info}| getMpdLic | lic | {lic}', xbmc.LOGINFO)
             
             list_item = xbmcgui.ListItem(path=stream_url)
 
@@ -685,7 +675,7 @@ class navigator:
             xbmc.Player().play(stream_url, list_item)
 
         except IndexError:
-            xbmc.log(f'Arena4Plus | v{version} | Kodi: {kodi_version[:5]}| OS: {os_info} | getMpdLic | lezárt tartalom/session probléma', xbmc.LOGINFO)
+            xbmc.log(f'{base_log_info}| getMpdLic | lezárt tartalom/session probléma', xbmc.LOGINFO)
             notification = xbmcgui.Dialog()
             notification.notification("Arena4Plus", "lezárt tartalom / session probléma", time=5000)        
 
@@ -737,15 +727,15 @@ class navigator:
             list_item.setInfo('video', {'title': both_title, 'plot': full_title})
             list_item.setArt({'poster': image_url})
             
-            xbmc.log(f'Arena4Plus | v{version} | Kodi: {kodi_version[:5]}| OS: {os_info} | getLiveMpdLic | both_title | {both_title}', xbmc.LOGINFO)
-            xbmc.log(f'Arena4Plus | v{version} | Kodi: {kodi_version[:5]}| OS: {os_info} | getLiveMpdLic | stream_url | {stream_url}', xbmc.LOGINFO)
-            xbmc.log(f'Arena4Plus | v{version} | Kodi: {kodi_version[:5]}| OS: {os_info} | getLiveMpdLic | lic_url | {lic_url}', xbmc.LOGINFO)
+            xbmc.log(f'{base_log_info}| getLiveMpdLic | both_title | {both_title}', xbmc.LOGINFO)
+            xbmc.log(f'{base_log_info}| getLiveMpdLic | stream_url | {stream_url}', xbmc.LOGINFO)
+            xbmc.log(f'{base_log_info}| getLiveMpdLic | lic_url | {lic_url}', xbmc.LOGINFO)
             
-            xbmc.log(f'Arena4Plus | v{version} | Kodi: {kodi_version[:5]}| OS: {os_info} | getLiveMpdLic | inputstream.adaptive.license_key | {lic}', xbmc.LOGINFO)
+            xbmc.log(f'{base_log_info}| getLiveMpdLic | inputstream.adaptive.license_key | {lic}', xbmc.LOGINFO)
             
             xbmc.Player().play(stream_url, list_item)
         except IndexError:
-            xbmc.log(f'Arena4Plus | v{version} | Kodi: {kodi_version[:5]}| OS: {os_info} | getLiveMpdLic | lezárt tartalom/session probléma', xbmc.LOGINFO)
+            xbmc.log(f'{base_log_info}| getLiveMpdLic | lezárt tartalom/session probléma', xbmc.LOGINFO)
             notification = xbmcgui.Dialog()
             notification.notification("Arena4Plus", "lezárt tartalom / session probléma", time=5000)
 
