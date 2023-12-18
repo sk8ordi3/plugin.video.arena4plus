@@ -668,6 +668,13 @@ class navigator:
             list_item.setArt({'poster': image_url})
             
             list_item.setProperty('inputstream', 'inputstream.adaptive')
+            
+            try:
+                list_item.setProperty('inputstream.adaptive.stream_headers', stream_url.split("|")[1])
+                list_item.setProperty('inputstream.adaptive.manifest_headers', stream_url.split("|")[1])
+            except:
+                pass            
+            
             list_item.setProperty('inputstream.adaptive.manifest_type', 'mpd')
             list_item.setProperty('inputstream.adaptive.license_type', 'com.widevine.alpha')
             list_item.setProperty('inputstream.adaptive.license_key', lic)
