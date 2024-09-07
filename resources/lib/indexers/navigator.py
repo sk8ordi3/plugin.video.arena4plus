@@ -44,7 +44,8 @@ if not user_name or not pass_word:
     xbmc.log("Username or password not set, opening settings", level=xbmc.LOGINFO)
     addon.openSettings()
 
-base_url = 'https://arena4plus.network4.hu'
+base_url = 'https://net4plus.network4.hu'
+base_dom = 'net4plus'
 
 if sys.version_info[0] == 3:
     from xbmcvfs import translatePath
@@ -63,7 +64,7 @@ class navigator:
                 locale.setlocale(locale.LC_ALL, "")
             except:
                 pass
-        self.base_path = py2_decode(translatePath(xbmcaddon.Addon().getAddonInfo('profile')))      
+        self.base_path = py2_decode(translatePath(xbmcaddon.Addon().getAddonInfo('profile')))
 
     def root(self):
         self.addDirectoryItem("Videótár", "videok_items", '', 'DefaultFolder.png')
@@ -77,14 +78,14 @@ class navigator:
         import json
         import re
         
-        login_url = "https://arena4plus.network4.hu/login"
+        login_url = f"{base_url}/login"
         
         headers = {
-            'authority': 'arena4plus.network4.hu',
+            'authority': f'{base_dom}.network4.hu',
             'accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9',
             'content-type': 'application/x-www-form-urlencoded',
-            'origin': 'https://arena4plus.network4.hu',
-            'referer': 'https://arena4plus.network4.hu/login',
+            'origin': f'{base_url}',
+            'referer': f'{base_url}/login',
             'user-agent': 'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/102.0.0.0 Safari/537.36',
         }
 
@@ -102,15 +103,15 @@ class navigator:
         response = requests.post(login_url, headers=headers, cookies=cookies, data=data)
 
         cookies_dict = requests.utils.dict_from_cookiejar(response.cookies)
-        arena4_online_session_value = cookies_dict.get('arena4_online_session', None)
+        arena4_online_session_value = cookies_dict.get('network4_online_session', None)
         
         cookies_2 = {
             '__e_inc': '1',
-            'arena4_online_session': arena4_online_session_value,
+            'network4_online_session': arena4_online_session_value,
         }
         
         headers_2 = {
-            'authority': 'arena4plus.network4.hu',
+            'authority': f'{base_dom}.network4.hu',
             'accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9',
             'user-agent': 'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/102.0.0.0 Safari/537.36',
         }        
@@ -130,15 +131,15 @@ class navigator:
         check_sum = decoded_html['serverMemo']['checksum']
         
         cookies_x = {
-            'arena4_online_session': f'{arena4_online_session_value}',
+            'network4_online_session': f'{arena4_online_session_value}',
         }
         
         headers_x = {
-            'authority': 'arena4plus.network4.hu',
+            'authority': f'{base_dom}.network4.hu',
             'accept': 'text/html, application/xhtml+xml',
             'accept-language': 'hu,en;q=0.9',
             'content-type': 'application/json',
-            'origin': 'https://arena4plus.network4.hu',
+            'origin': f'{base_url}',
             'user-agent': 'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/102.0.0.0 Safari/537.36',
             'x-csrf-token': f'{csrf}',
             'x-livewire': 'true',
@@ -151,6 +152,7 @@ class navigator:
                 'locale': 'hu',
                 'path': 'collections',
                 'method': 'GET',
+                'v': 'acj',
             },
             'serverMemo': {
                 'children': [],
@@ -171,6 +173,7 @@ class navigator:
                 {
                     'type': 'callMethod',
                     'payload': {
+                        'id': f'{finger_id}',
                         'method': 'loadItems',
                         'params': [],
                     },
@@ -179,7 +182,7 @@ class navigator:
         }
         
 
-        response_x = requests.post('https://arena4plus.network4.hu/livewire/message/collection-items', cookies=cookies_x, headers=headers_x, json=json_data_x).json()
+        response_x = requests.post(f'{base_url}/livewire/message/collection-items', cookies=cookies_x, headers=headers_x, json=json_data_x).json()
 
         effects_data = response_x.get('effects', {})
         html_content = effects_data.get('html', '')
@@ -188,10 +191,17 @@ class navigator:
         main_blocks = soup_x.find_all('div', class_='flex sm:flex xl:flex-item xl:block w-full xl:p-8 xl:w-3/12 focus:ring-2 focus:ring-white focus:shadow-2xl navigable focus:scale-110 hover:scale-105 transform')
         
         for block in main_blocks:
+            
+            
+            
             main_link_id = block.find('a', href=True)['href']
             fix_videok_link = f'{base_url}{main_link_id}'
 
-            main_img_url = block.find('img')['src']
+            try:
+                img_tag = block.find('img')
+                main_img_url = img_tag.get('data-src') or img_tag.get('src') if img_tag else None
+            except AttributeError:
+                main_img_url = None
             
             main_title_divs = block.find_all('div', class_='text-white')
             main_title_parts = [div.text.strip() for div in main_title_divs]
@@ -207,14 +217,14 @@ class navigator:
         import json
         import re
         
-        login_url = "https://arena4plus.network4.hu/login"
+        login_url = f"{base_url}/login"
         
         headers = {
-            'authority': 'arena4plus.network4.hu',
+            'authority': f'{base_dom}.network4.hu',
             'accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9',
             'content-type': 'application/x-www-form-urlencoded',
-            'origin': 'https://arena4plus.network4.hu',
-            'referer': 'https://arena4plus.network4.hu/login',
+            'origin': f'{base_url}',
+            'referer': f'{base_url}/login',
             'user-agent': 'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/102.0.0.0 Safari/537.36',
         }
 
@@ -232,15 +242,15 @@ class navigator:
         response = requests.post(login_url, headers=headers, cookies=cookies, data=data)
 
         cookies_dict = requests.utils.dict_from_cookiejar(response.cookies)
-        arena4_online_session_value = cookies_dict.get('arena4_online_session', None)
+        arena4_online_session_value = cookies_dict.get('network4_online_session', None)
         
         cookies_2 = {
             '__e_inc': '1',
-            'arena4_online_session': arena4_online_session_value,
+            'network4_online_session': arena4_online_session_value,
         }
         
         headers_2 = {
-            'authority': 'arena4plus.network4.hu',
+            'authority': f'{base_dom}.network4.hu',
             'accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9',
             'user-agent': 'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/102.0.0.0 Safari/537.36',
         }        
@@ -260,15 +270,15 @@ class navigator:
         check_sum = decoded_html['serverMemo']['checksum']
         
         cookies_x = {
-            'arena4_online_session': f'{arena4_online_session_value}',
+            'network4_online_session': f'{arena4_online_session_value}',
         }
         
         headers_x = {
-            'authority': 'arena4plus.network4.hu',
+            'authority': f'{base_dom}.network4.hu',
             'accept': 'text/html, application/xhtml+xml',
             'accept-language': 'hu,en;q=0.9',
             'content-type': 'application/json',
-            'origin': 'https://arena4plus.network4.hu',
+            'origin': f'{base_url}',
             'user-agent': 'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/102.0.0.0 Safari/537.36',
             'x-csrf-token': f'{csrf}',
             'x-livewire': 'true',
@@ -281,6 +291,7 @@ class navigator:
                 'locale': 'hu',
                 'path': 'collections/legfrissebb-videok',
                 'method': 'GET',
+                'v': 'acj',
             },
             'serverMemo': {
                 'children': [],
@@ -303,6 +314,7 @@ class navigator:
                 {
                     'type': 'callMethod',
                     'payload': {
+                        'id': f'{finger_id}',
                         'method': 'loadItems',
                         'params': [],
                     },
@@ -310,7 +322,7 @@ class navigator:
             ],
         }
 
-        response_x = requests.post('https://arena4plus.network4.hu/livewire/message/collection-items', cookies=cookies_x, headers=headers_x, json=json_data_x).json()
+        response_x = requests.post(f'{base_url}/livewire/message/collection-items', cookies=cookies_x, headers=headers_x, json=json_data_x).json()
 
         effects_data = response_x.get('effects', {})
         html_content = effects_data.get('html', '')
@@ -321,7 +333,17 @@ class navigator:
             link_url = item.find('a', {'class': 'ratio--16-9'})['href']
             fix_videok_link = f'{base_url}{link_url}'
             
-            image_url = item.find('a', {'class': 'ratio--16-9'}).get('style').split('url(')[2].split(')')[0].strip("'")
+            link_tag_image = item.find('a', {'class': 'lazy ratio ratio--16-9'})
+            if link_tag_image:
+                image_url = link_tag_image.get('data-bg')
+
+                if not image_url:
+                    style_attr = link_tag_image.get('style', '')
+                    match = re.search(r'url\((.*?)\)', style_attr)
+                    if match:
+                        image_url = match.group(1).strip("'\"")
+            else:
+                image_url = None
             
             locked_or_not = re.findall(r'net4plus_(.*).png', str(item))[0].strip()
             
@@ -348,14 +370,14 @@ class navigator:
         import json
         import re
         
-        login_url = "https://arena4plus.network4.hu/login"
+        login_url = f"{base_url}/login"
         
         headers = {
-            'authority': 'arena4plus.network4.hu',
+            'authority': f'{base_dom}.network4.hu',
             'accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9',
             'content-type': 'application/x-www-form-urlencoded',
-            'origin': 'https://arena4plus.network4.hu',
-            'referer': 'https://arena4plus.network4.hu/login',
+            'origin': f'{base_url}',
+            'referer': f'{base_url}/login',
             'user-agent': 'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/102.0.0.0 Safari/537.36',
         }
 
@@ -373,15 +395,15 @@ class navigator:
         response = requests.post(login_url, headers=headers, cookies=cookies, data=data)
 
         cookies_dict = requests.utils.dict_from_cookiejar(response.cookies)
-        arena4_online_session_value = cookies_dict.get('arena4_online_session', None)
+        arena4_online_session_value = cookies_dict.get('network4_online_session', None)
         
         cookies_2 = {
             '__e_inc': '1',
-            'arena4_online_session': arena4_online_session_value,
+            'network4_online_session': arena4_online_session_value,
         }
         
         headers_2 = {
-            'authority': 'arena4plus.network4.hu',
+            'authority': f'{base_dom}.network4.hu',
             'accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9',
             'user-agent': 'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/102.0.0.0 Safari/537.36',
         }        
@@ -400,15 +422,15 @@ class navigator:
         check_sum = decoded_html['serverMemo']['checksum']
         
         cookies_x = {
-            'arena4_online_session': f'{arena4_online_session_value}',
+            'network4_online_session': f'{arena4_online_session_value}',
         }
         
         headers_x = {
-            'authority': 'arena4plus.network4.hu',
+            'authority': f'{base_dom}.network4.hu',
             'accept': 'text/html, application/xhtml+xml',
             'accept-language': 'hu,en;q=0.9',
             'content-type': 'application/json',
-            'origin': 'https://arena4plus.network4.hu',
+            'origin': f'{base_url}',
             'user-agent': 'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/102.0.0.0 Safari/537.36',
             'x-csrf-token': f'{csrf}',
             'x-livewire': 'true',
@@ -421,6 +443,7 @@ class navigator:
                 'locale': 'hu',
                 'path': 'collections/live/collection',
                 'method': 'GET',
+                'v': 'acj',
             },
             'serverMemo': {
                 'children': [],
@@ -443,6 +466,7 @@ class navigator:
                 {
                     'type': 'callMethod',
                     'payload': {
+                        'id': f'{finger_id}',
                         'method': 'loadItems',
                         'params': [],
                     },
@@ -451,21 +475,32 @@ class navigator:
         }
         
 
-        response_x = requests.post('https://arena4plus.network4.hu/livewire/message/collection-items', cookies=cookies_x, headers=headers_x, json=json_data_x).json()
+        response_x = requests.post(f'{base_url}/livewire/message/collection-items', cookies=cookies_x, headers=headers_x, json=json_data_x).json()
 
         effects_data = response_x.get('effects', {})
         html_content = effects_data.get('html', '')
         soup_x = BeautifulSoup(html_content, 'html.parser')
         
         for item in soup_x.find_all('div', attrs={'data-component': 'item'}):
+            
             live_url_elem = item.find('a', {'data-collection': 'Y'})
             live_url = live_url_elem.get('href').strip() if live_url_elem else ''
-        
             fix_videok_link = f'{base_url}{live_url}'
-        
-            image_style = item.select_one('a[data-collection="Y"]').get('style')
-            background_images = re.findall(r"url\(\'(.*?)\'\)", image_style)
-            image_url = background_images[-1] if background_images else ''
+
+            link_tag_image = item.find('a', class_=re.compile(r'\bratio\b.*\bratio--16-9\b'))
+            
+            if link_tag_image:
+                image_url = link_tag_image.get('data-bg')
+                
+                if not image_url:
+                    style_attr = link_tag_image.get('style')
+                    
+                    if style_attr:
+                        match = re.search(r'url\([\'"]?([^\'"]+)[\'"]?\)', style_attr)
+                        if match:
+                            image_url = match.group(1)
+            else:
+                image_url = None
         
             category_title_elem = item.find('div', class_='text-white bg-green text-black pr-1 pl-1 font-bold')
             category_title = category_title_elem.text.strip() if category_title_elem else ''
@@ -494,11 +529,11 @@ class navigator:
         
         cookies_2 = {
             '__e_inc': '1',
-            'arena4_online_session': arena4_online_session_value,
+            'network4_online_session': arena4_online_session_value,
         }
         
         headers_2 = {
-            'authority': 'arena4plus.network4.hu',
+            'authority': f'{base_dom}.network4.hu',
             'accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9',
             'user-agent': 'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/102.0.0.0 Safari/537.36',
         }
@@ -520,15 +555,15 @@ class navigator:
         coll_id = decoded_html['serverMemo']['data']['collection_id']
         
         cookies_x = {
-            'arena4_online_session': f'{arena4_online_session_value}',
+            'network4_online_session': f'{arena4_online_session_value}',
         }
         
         headers_x = {
-            'authority': 'arena4plus.network4.hu',
+            'authority': f'{base_dom}.network4.hu',
             'accept': 'text/html, application/xhtml+xml',
             'accept-language': 'hu,en;q=0.9',
             'content-type': 'application/json',
-            'origin': 'https://arena4plus.network4.hu',
+            'origin': f'{base_url}',
             'user-agent': 'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/102.0.0.0 Safari/537.36',
             'x-csrf-token': f'{csrf}',
             'x-livewire': 'true',
@@ -541,6 +576,7 @@ class navigator:
                 'locale': 'hu',
                 'path': f'{url_id}',
                 'method': 'GET',
+                'v': 'acj',
             },
             'serverMemo': {
                 'children': [],
@@ -563,6 +599,7 @@ class navigator:
                 {
                     'type': 'callMethod',
                     'payload': {
+                        'id': f'{finger_id}',
                         'method': 'loadItems',
                         'params': [],
                     },
@@ -570,7 +607,7 @@ class navigator:
             ],
         }
 
-        response_x = requests.post('https://arena4plus.network4.hu/livewire/message/collection-items', cookies=cookies_x, headers=headers_x, json=json_data_x).json()
+        response_x = requests.post(f'{base_url}/livewire/message/collection-items', cookies=cookies_x, headers=headers_x, json=json_data_x).json()
 
         effects_data = response_x.get('effects', {})
         html_content = effects_data.get('html', '')
@@ -579,10 +616,16 @@ class navigator:
         items = soup_x.find_all('div', {'data-component': 'item'})
         
         for item in items:
+            
             url = item.find('a')['href']
             url_vod = f'{base_url}{url}'
             
-            image_url = item.find('a')['style'].split('url(')[2].split(')')[0].strip("'")
+            link_tag_image = item.find('a', {'class': 'ratio ratio--16-9'})
+            if link_tag_image:
+                image_url = link_tag_image.get('data-bg')
+            else:
+                image_url = None
+            
             main_cat = item.find('div', {'class': 'text-white bg-green text-black pr-1 pl-1 font-bold'}).text.strip()
             title_part_1 = item.find('h3', {'class': 'pl-2 pr-2 lg:pr-0 lg:pl-0 head-2 mt-4 md:mt-0 lg:mt-4 text-white'}).text.strip()
             title_part_2 = item.find('div', {'class': 'pl-2 pr-2 lg:pl-0 lg:pr-0 xl:text-lg text-white'}).text.strip()
@@ -605,14 +648,14 @@ class navigator:
             import json
             import re
             
-            login_url = "https://arena4plus.network4.hu/login"
+            login_url = f"{base_url}/login"
             
             headers = {
-                'authority': 'arena4plus.network4.hu',
+                'authority': f'{base_dom}.network4.hu',
                 'accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9',
                 'content-type': 'application/x-www-form-urlencoded',
-                'origin': 'https://arena4plus.network4.hu',
-                'referer': 'https://arena4plus.network4.hu/login',
+                'origin': f'{base_url}',
+                'referer': f'{base_url}/login',
                 'user-agent': 'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/102.0.0.0 Safari/537.36',
             }
             
@@ -630,54 +673,32 @@ class navigator:
             response = requests.post(login_url, headers=headers, cookies=cookies, data=data)
             
             cookies_dict = requests.utils.dict_from_cookiejar(response.cookies)
-            arena4_online_session_value = cookies_dict.get('arena4_online_session', None)
+            arena4_online_session_value = cookies_dict.get('network4_online_session', None)
             
             cookies_2 = {
                 '__e_inc': '1',
-                'arena4_online_session': arena4_online_session_value,
+                'network4_online_session': arena4_online_session_value,
             }
             
             headers_2 = {
-                'authority': 'arena4plus.network4.hu',
+                'authority': f'{base_dom}.network4.hu',
                 'accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9',
                 'user-agent': 'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/102.0.0.0 Safari/537.36',
             }
             
             response_2 = requests.get(f"{url}", headers=headers_2, cookies=cookies_2).text
-            stream_url = re.findall(r'src\":\"(https://.*mpd.*)\"', response_2)[0].strip()
-            
-            response_3 = requests.get(stream_url).text
-            lic_url = re.findall(r'license[uU]rl=\"(.*?)\"', response_3)[0].strip()
-            
-            xbmc.log(f'{base_log_info}| getMpdLic | both_title | {both_title}', xbmc.LOGINFO)
-            xbmc.log(f'{base_log_info}| getMpdLic | stream_url | {stream_url}', xbmc.LOGINFO)
+            stream_url = re.findall(r'\"src\".*?\"(.*?m3u8.*?drm.*?)\"', response_2)[0].strip()
 
             if re.search(r'None', str(both_title)):
                 full_title = f'{main_title}'
                 both_title = f'{main_title}'
             else:
                 full_title = f'{main_title}\n{both_title}'
-
-            lic = lic_url + '||R{SSM}|'
-            
-            xbmc.log(f'{base_log_info}| getMpdLic | lic | {lic}', xbmc.LOGINFO)
             
             list_item = xbmcgui.ListItem(path=stream_url)
 
             list_item.setInfo('video', {'title': both_title, 'plot': full_title})
             list_item.setArt({'poster': image_url})
-            
-            list_item.setProperty('inputstream', 'inputstream.adaptive')
-            
-            try:
-                list_item.setProperty('inputstream.adaptive.stream_headers', stream_url.split("|")[1])
-                list_item.setProperty('inputstream.adaptive.manifest_headers', stream_url.split("|")[1])
-            except:
-                pass            
-            
-            list_item.setProperty('inputstream.adaptive.manifest_type', 'mpd')
-            list_item.setProperty('inputstream.adaptive.license_type', 'com.widevine.alpha')
-            list_item.setProperty('inputstream.adaptive.license_key', lic)
             
             xbmc.Player().play(stream_url, list_item)
 
@@ -694,36 +715,21 @@ class navigator:
             
             cookies_2 = {
                 '__e_inc': '1',
-                'arena4_online_session': arena4_online_session_value,
+                'network4_online_session': arena4_online_session_value,
             }
             
             headers_2 = {
-                'authority': 'arena4plus.network4.hu',
+                'authority': f'{base_dom}.network4.hu',
                 'accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9',
                 'user-agent': 'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/102.0.0.0 Safari/537.36',
             }
             
             response_2 = requests.get(f"{url}", headers=headers_2, cookies=cookies_2)
-            soup_xx = BeautifulSoup(response_2.text, 'html.parser')        
-            
-            #for live need the second mpd link from the first mpd url
-            stream = re.findall(r'src\":\"(https://.*mpd.*)\"', str(soup_xx))[0].strip()
-            
-            response_3 = requests.get(stream)
-            soup_lic = BeautifulSoup(response_3.text, 'html.parser')
-            
-            lic_url = re.findall(r'licenseurl=\"(.*?)\"', str(soup_lic))[0].strip()
-            stream_url = re.findall(r'<location>(.*)</location>', str(soup_lic))[0].strip()
-            
-            user_agent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/110.0.0.0 Safari/537.36'
-            lic = lic_url + '|User-Agent=' + user_agent + '&Referer=' + base_url +'/&Origin=' + base_url + '&Content-Type= |R{SSM}|'
-            
+            soup_xx = BeautifulSoup(response_2.text, 'html.parser')
+
+            stream_url = re.findall(r'\"src\".*?\"(.*?m3u8.*?drm.*?)\"', str(soup_xx))[0].strip()
+
             list_item = xbmcgui.ListItem(path=stream_url)
-            
-            list_item.setProperty('inputstream', 'inputstream.adaptive')
-            list_item.setProperty('inputstream.adaptive.manifest_type', 'mpd')
-            list_item.setProperty('inputstream.adaptive.license_type', 'com.widevine.alpha')
-            list_item.setProperty('inputstream.adaptive.license_key', lic)
             
             if re.search(r'None', str(both_title)):
                 full_title = f'| {category_title} | {main_title}'
@@ -733,12 +739,6 @@ class navigator:
             
             list_item.setInfo('video', {'title': both_title, 'plot': full_title})
             list_item.setArt({'poster': image_url})
-            
-            xbmc.log(f'{base_log_info}| getLiveMpdLic | both_title | {both_title}', xbmc.LOGINFO)
-            xbmc.log(f'{base_log_info}| getLiveMpdLic | stream_url | {stream_url}', xbmc.LOGINFO)
-            xbmc.log(f'{base_log_info}| getLiveMpdLic | lic_url | {lic_url}', xbmc.LOGINFO)
-            
-            xbmc.log(f'{base_log_info}| getLiveMpdLic | inputstream.adaptive.license_key | {lic}', xbmc.LOGINFO)
             
             xbmc.Player().play(stream_url, list_item)
         except IndexError:
@@ -756,14 +756,14 @@ class navigator:
         import json
         import re
         
-        login_url = "https://arena4plus.network4.hu/login"
+        login_url = f"{base_url}/login"
         
         headers = {
-            'authority': 'arena4plus.network4.hu',
+            'authority': f'{base_dom}.network4.hu',
             'accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9',
             'content-type': 'application/x-www-form-urlencoded',
-            'origin': 'https://arena4plus.network4.hu',
-            'referer': 'https://arena4plus.network4.hu/login',
+            'origin': f'{base_url}',
+            'referer': f'{base_url}/login',
             'user-agent': 'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/102.0.0.0 Safari/537.36',
         }
         
@@ -781,15 +781,15 @@ class navigator:
         response = requests.post(login_url, headers=headers, cookies=cookies, data=data)
         
         cookies_dict = requests.utils.dict_from_cookiejar(response.cookies)
-        arena4_online_session_value = cookies_dict.get('arena4_online_session', None)
+        arena4_online_session_value = cookies_dict.get('network4_online_session', None)
         
         cookies_2 = {
             '__e_inc': '1',
-            'arena4_online_session': arena4_online_session_value,
+            'network4_online_session': arena4_online_session_value,
         }
         
         headers_2 = {
-            'authority': 'arena4plus.network4.hu',
+            'authority': f'{base_dom}.network4.hu',
             'accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9',
             'user-agent': 'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/102.0.0.0 Safari/537.36',
         }        
@@ -809,15 +809,15 @@ class navigator:
         check_sum = decoded_html['serverMemo']['checksum']
         
         cookies_x = {
-            'arena4_online_session': f'{arena4_online_session_value}',
+            'network4_online_session': f'{arena4_online_session_value}',
         }
         
         headers_x = {
-            'authority': 'arena4plus.network4.hu',
+            'authority': f'{base_dom}.network4.hu',
             'accept': 'text/html, application/xhtml+xml',
             'accept-language': 'hu,en;q=0.9',
             'content-type': 'application/json',
-            'origin': 'https://arena4plus.network4.hu',
+            'origin': f'{base_url}',
             'user-agent': 'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/102.0.0.0 Safari/537.36',
             'x-csrf-token': f'{csrf}',
             'x-livewire': 'true',
@@ -830,6 +830,7 @@ class navigator:
                 'locale': 'hu',
                 'path': 'search',
                 'method': 'GET',
+                'v': 'acj',
             },
             'serverMemo': {
                 'children': [],
@@ -852,6 +853,7 @@ class navigator:
                 {
                     'type': 'syncInput',
                     'payload': {
+                        'id': f'{finger_id}',
                         'name': 'search',
                         'value': f'{search_text}',
                     },
@@ -860,7 +862,7 @@ class navigator:
         }
         
         
-        response_x = requests.post('https://arena4plus.network4.hu/livewire/message/collection-items', cookies=cookies_x, headers=headers_x, json=json_data_x).json()
+        response_x = requests.post(f'{base_url}/livewire/message/collection-items', cookies=cookies_x, headers=headers_x, json=json_data_x).json()
         
         effects_data = response_x.get('effects', {})
         html_content = effects_data.get('html', '')
@@ -872,9 +874,6 @@ class navigator:
         
             link_url = block.find('a')['href']
             fix_videok_link = f'{base_url}{link_url}'
-
-            # category_element = block.find('div', class_='bg-green')
-            # category_title = category_element.text.strip() if category_element else "Category Not Found"
             
             title_1 = block.find('h3').text.strip()
             title_2 = block.find('div', class_='xl:text-lg').text.strip()
@@ -919,4 +918,4 @@ class navigator:
 
     def endDirectory(self, type='addons'):
         xbmcplugin.setContent(syshandle, type)
-        xbmcplugin.endOfDirectory(syshandle, cacheToDisc=True)  
+        xbmcplugin.endOfDirectory(syshandle, cacheToDisc=True)
